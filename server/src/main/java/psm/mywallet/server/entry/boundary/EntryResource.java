@@ -41,6 +41,12 @@ public class EntryResource {
                 .collect(Collectors.toList());
     }
 
+    @GET
+    @Path("tag/{tagName}/sum")
+    public Number getSumOfAllEntriesForTag(@PathParam("tagName") String tagName) {
+        return entryRepository.getSumOfAllEntriesForTag(tagName);
+    }
+
     private EntryDTO mapToEntryDTO(Entry entry) {
         Set<String> tagNames = entry.getTags().stream()
                 .map(Tag::getName)
@@ -54,6 +60,12 @@ public class EntryResource {
         entryDTO.setTags(tagNames);
 
         return entryDTO;
+    }
+
+    @GET
+    @Path("balance")
+    public Number getAccountBalance() {
+        return entryRepository.getAccountBalance();
     }
 
     @POST

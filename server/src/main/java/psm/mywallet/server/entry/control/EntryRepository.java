@@ -11,8 +11,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,6 +40,29 @@ public class EntryRepository {
                 .map(Tag::getEntries)
                 .map(ImmutableList::copyOf)
                 .orElse(ImmutableList.of());
+    }
+
+    public Number getSumOfAllEntriesForTag(String tagName) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Entry> q = cb.createQuery(Entry.class);
+        Root<Entry> entry = q.from(Entry.class);
+        Join<Entry, Tag> tag = entry.join("tags");
+        q.select(entry)
+                .where(cb.equal(tag.get("name"), tagName));
+        TypedQuery<Entry> query = em.createQuery(q);
+
+        return query.getResultList().stream()
+                .map(Entry::getValue)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+    }
+
+
+    public Number getAccountBalance() {
+        return em.createQuery("SELECT e FROM Entry e", Entry.class).getResultList().stream()
+                .map(Entry::getValue)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
     }
 
     @Transactional

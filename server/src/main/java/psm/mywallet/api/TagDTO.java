@@ -10,7 +10,7 @@ public class TagDTO {
     private Long id;
     private String name;
     private String description;
-    private Set<String> entries;
+    private Set<Long> entries;
 
     public Long getId() {
         return id;
@@ -36,11 +36,11 @@ public class TagDTO {
         this.description = description;
     }
 
-    public Set<String> getEntries() {
+    public Set<Long> getEntries() {
         return entries;
     }
 
-    public void setEntries(Set<String> entries) {
+    public void setEntries(Set<Long> entries) {
         this.entries = entries;
     }
 
