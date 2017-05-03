@@ -39,4 +39,44 @@ If you remove default datasource it might be necessary to use this command:
  - after connecting to jboss-cli type `deploy C:\path\to\mywallet.war`
 
 ## How to use it?
+### API
+#### Entities
+##### Entry
+- id - *Number* (used only in queried entities)
+- createDate - *Date* (used only in queried entities)
+- value - *Number*
+- description - *String*
+- tags - *Set of Strings*
+
+##### Tag
+- id - *Number* - (used only in queried entities)
+- name - *String* - name without hash character (#)
+- description - *String* - Optional
+- entries - *Set of Numbers* - ids of all entries assigned to this tag
+
+#### Endpoints
+##### All entries
+**GET** on `/mywallet/entries`
+
+##### Account balance (sum of all entry values)
+**GET** on `/mywallet/entries/balance`
+
+##### Entries by tag
+**GET** on `/mywallet/entries/{tagName}`
+
+##### Sum of entry values by tag
+**GET** on `/mywallet/entries/{tagName}/sum`
+
+##### Add entry
+**POST** on `/mywallet/entries` with *Entry* DTO in request's body. For example:
+```javascript
+{
+  "value": 54.2,
+  "description": "tankowanie bp #paliwo",
+  "tags": [
+    "paliwo"
+  ]
+}
+```
+
 `TODO TODO TODO TODO TODO`
