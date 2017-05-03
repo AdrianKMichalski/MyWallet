@@ -1,13 +1,17 @@
 package psm.mywallet.server.entry.boundary;
 
+import psm.mywallet.api.EntryDTO;
 import psm.mywallet.server.entry.control.EntryRepository;
 import psm.mywallet.server.jpa.entity.Entry;
+import psm.mywallet.server.jpa.entity.Tag;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Adrian Michalski
@@ -23,14 +27,47 @@ public class EntryResource {
     EntryRepository entryRepository;
 
     @GET
-    public List<Entry> get() {
-        return entryRepository.getAll();
+    public List<EntryDTO> getAllEntries() {
+        return entryRepository.getAll().stream()
+                .map(this::mapToEntryDTO)
+                .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("tag/{tagName}")
+    public List<EntryDTO> getEntriesByTag(@PathParam("tagName") String tagName) {
+        return entryRepository.getByTag(tagName).stream()
+                .map(this::mapToEntryDTO)
+                .collect(Collectors.toList());
+    }
+
+    private EntryDTO mapToEntryDTO(Entry entry) {
+        Set<String> tagNames = entry.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
+
+        EntryDTO entryDTO = new EntryDTO();
+        entryDTO.setId(entry.getId());
+        entryDTO.setCreateDate(entry.getCreateDate());
+        entryDTO.setDescription(entry.getDescription());
+        entryDTO.setValue(entry.getValue());
+        entryDTO.setTags(tagNames);
+
+        return entryDTO;
     }
 
     @POST
-    @Path("/{name}")
-    public Response post(@PathParam("name") String name) {
-        entryRepository.save(new Entry(name));
+    public Response createEntry(EntryDTO entryDTO) {
+        Set<Tag> tags = entryDTO.getTags().stream()
+                .map(Tag::new)
+                .collect(Collectors.toSet());
+
+        Entry entry = new Entry();
+        entry.setDescription(entryDTO.getDescription());
+        entry.setValue(entryDTO.getValue());
+        entry.setTags(tags);
+
+        entryRepository.save(entry);
         return Response.ok().build();
     }
 
