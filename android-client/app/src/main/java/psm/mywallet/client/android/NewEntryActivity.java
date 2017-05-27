@@ -2,13 +2,12 @@ package psm.mywallet.client.android;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -103,8 +102,7 @@ public class NewEntryActivity extends AppCompatActivity {
                     Toast.makeText(NewEntryActivity.this, "Could not add entry - check your Internet connection", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(NewEntryActivity.this, "Entry saved", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(NewEntryActivity.this, EntriesActivity.class);
-                    startActivity(intent);
+                    NavUtils.navigateUpFromSameTask(NewEntryActivity.this);
                 }
             }
         });
@@ -112,7 +110,7 @@ public class NewEntryActivity extends AppCompatActivity {
 
     private String getServerAddressFromSharedPreferences() {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return preferences.getString(MainActivity.SERVER_ADDRESS, "");
+        return preferences.getString(ConfigurationActivity.SERVER_ADDRESS, "");
     }
 
     @NonNull

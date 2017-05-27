@@ -1,6 +1,5 @@
 package psm.mywallet.client.android;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -15,7 +14,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,13 +51,24 @@ public class EntriesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entries);
 
+        checkServerConfiguration();
+
         setupServerEndpoints();
         setupToolbar();
         setupHashtagButton();
+        setupSettingsButton();
         setUpSwipeRefresh();
         setupFloatingAddEntryButton();
 
         queryEntries();
+    }
+
+    private void checkServerConfiguration() {
+        if (getServerAddressFromSharedPreferences().isEmpty()) {
+            Toast.makeText(this, "Server address not configured", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(EntriesActivity.this, ConfigurationActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void setupServerEndpoints() {
@@ -79,6 +88,17 @@ public class EntriesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(EntriesActivity.this, "TODO", Toast.LENGTH_SHORT).show(); // TODO
+            }
+        });
+    }
+
+    private void setupSettingsButton() {
+        ImageButton settingsImageButton = (ImageButton) findViewById(R.id.settingsImageButton);
+        settingsImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(EntriesActivity.this, ConfigurationActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -105,7 +125,6 @@ public class EntriesActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(EntriesActivity.this, NewEntryActivity.class);
-                intent.putExtra(MainActivity.SERVER_ADDRESS_MESSAGE, baseUrl);
                 startActivity(intent);
             }
         });
@@ -173,9 +192,7 @@ public class EntriesActivity extends AppCompatActivity {
             }
         });
 
-
-        ProgressBar progressBar = (ProgressBar) findViewById(R.id.entriesLoadingProgressBar);
-        progressBar.setVisibility(View.VISIBLE);
+        swipeRefreshLayout.setRefreshing(true);
 
         queue.add(entriesRequest);
         queue.add(balanceRequest);
@@ -183,8 +200,6 @@ public class EntriesActivity extends AppCompatActivity {
         queue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
             @Override
             public void onRequestFinished(Request<Object> request) {
-                ProgressBar progressBar = (ProgressBar) findViewById(R.id.entriesLoadingProgressBar);
-                progressBar.setVisibility(View.INVISIBLE);
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
@@ -192,7 +207,7 @@ public class EntriesActivity extends AppCompatActivity {
 
     private String getServerAddressFromSharedPreferences() {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return preferences.getString(MainActivity.SERVER_ADDRESS, "");
+        return preferences.getString(ConfigurationActivity.SERVER_ADDRESS, "");
     }
 
     @NonNull

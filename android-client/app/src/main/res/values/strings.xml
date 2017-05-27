@@ -16,4 +16,5 @@
     <string name="default_my_wallet_server_url">http://localhost/mywallet</string>
     <string name="entries_title_account_balance">Account balance:</string>
     <string name="wrong_server_address">Wrong MyWallet server address</string>
+    <string name="title_activity_configuration">Server address configuration</string>
 </resources>
