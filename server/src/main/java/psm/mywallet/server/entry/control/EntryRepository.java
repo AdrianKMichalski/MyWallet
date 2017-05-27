@@ -31,7 +31,7 @@ public class EntryRepository {
     private EntityManager em;
 
     public List<Entry> getAll() {
-        return em.createQuery("SELECT e FROM Entry e", Entry.class)
+        return em.createQuery("SELECT e FROM Entry e ORDER BY e.createDate DESC", Entry.class)
                 .getResultList();
     }
 
