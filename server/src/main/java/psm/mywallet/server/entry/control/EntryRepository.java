@@ -37,7 +37,9 @@ public class EntryRepository {
 
     public List<Entry> getByTag(String tagName) {
         return queryForTag(tagName)
-                .map(Tag::getEntries)
+                .map(tag -> tag.getEntries().stream()
+                        .sorted((a, b) -> b.getCreateDate().compareTo(a.getCreateDate()))
+                        .collect(Collectors.toList()))
                 .map(ImmutableList::copyOf)
                 .orElse(ImmutableList.of());
     }
