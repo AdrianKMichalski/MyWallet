@@ -87,7 +87,8 @@ public class EntriesActivity extends AppCompatActivity {
         hashTagImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(EntriesActivity.this, "TODO", Toast.LENGTH_SHORT).show(); // TODO
+                Intent intent = new Intent(EntriesActivity.this, HashtagActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -137,7 +138,7 @@ public class EntriesActivity extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 TextView accountBalanceTextView = (TextView) findViewById(R.id.accountBalanceTextView);
-                accountBalanceTextView.setText(getString(R.string.entries_title_account_balance) + response);
+                accountBalanceTextView.setText(getString(R.string.entries_title_account_balance) + " " + response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -227,6 +228,12 @@ public class EntriesActivity extends AppCompatActivity {
                 .appendPath("entries")
                 .build()
                 .toString();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        queryEntries();
     }
 
 }

@@ -17,4 +17,9 @@
     <string name="entries_title_account_balance">Account balance:</string>
     <string name="wrong_server_address">Wrong MyWallet server address</string>
     <string name="title_activity_configuration">Server address configuration</string>
+    <string name="title_activity_hashtag">Search by HashTag</string>
+    <string name="hashtag_search_button">Search</string>
+    <string name="enter_tag_name_hint">Enter tag name</string>
+    <string name="hashtag_latest_results">Latest results:</string>
+    <string name="sum_for_tag">Sum for</string>
 </resources>
