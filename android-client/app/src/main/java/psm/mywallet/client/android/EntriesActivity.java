@@ -143,7 +143,7 @@ public class EntriesActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                // TODO: handle loading errors
+                Toast.makeText(EntriesActivity.this, "Can not load balance - check your internet connection or server address", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -189,7 +189,7 @@ public class EntriesActivity extends AppCompatActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                // TODO: handle loading errors
+                Toast.makeText(EntriesActivity.this, "Can not load entries - check your internet connection or server address", Toast.LENGTH_LONG).show();
             }
         });
 
