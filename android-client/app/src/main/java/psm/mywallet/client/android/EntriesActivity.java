@@ -1,18 +1,23 @@
 package psm.mywallet.client.android;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -21,20 +26,25 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.common.collect.ImmutableSet;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 
-import psm.mywallet.client.android.pojo.ListEntry;
+import psm.mywallet.api.EntryDTO;
 
 /**
  * @author Adrian Michalski
  */
 public class EntriesActivity extends AppCompatActivity {
+
+    private String baseUrl;
+    private String balanceUrl;
+    private String entriesUrl;
 
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -42,33 +52,60 @@ public class EntriesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entries);
+
+        setupServerEndpoints();
+        setupToolbar();
+        setupHashtagButton();
+        setUpSwipeRefresh();
+        setupFloatingAddEntryButton();
+
+        queryEntries();
+    }
+
+    private void setupServerEndpoints() {
+        baseUrl = getServerAddressFromSharedPreferences();
+        balanceUrl = getAccountBalanceUrl(baseUrl);
+        entriesUrl = getEntriesUrl(baseUrl);
+    }
+
+    private void setupToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+    }
 
+    private void setupHashtagButton() {
+        ImageButton hashTagImageButton = (ImageButton) findViewById(R.id.hashTagImageButton);
+        hashTagImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(EntriesActivity.this, "TODO", Toast.LENGTH_SHORT).show(); // TODO
+            }
+        });
+    }
+
+    private void setUpSwipeRefresh() {
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshEntriesLayout);
-
         swipeRefreshLayout.setColorSchemeColors(
                 getResources().getColor(R.color.colorPrimary),
                 getResources().getColor(R.color.colorPrimaryDark),
                 getResources().getColor(R.color.colorPrimary),
                 getResources().getColor(R.color.colorAccent)
         );
-
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 queryEntries();
             }
         });
+    }
 
-        queryEntries();
-
-
+    private void setupFloatingAddEntryButton() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(EntriesActivity.this, NewEntryActivity.class);
+                intent.putExtra(MainActivity.SERVER_ADDRESS_MESSAGE, baseUrl);
                 startActivity(intent);
             }
         });
@@ -76,14 +113,12 @@ public class EntriesActivity extends AppCompatActivity {
 
     private void queryEntries() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        String balanceUrl = "http://localhost/mywallet/entries/balance";
-        String entriesUrl = "http://localhost/mywallet/entries";
 
         StringRequest balanceRequest = new StringRequest(Request.Method.GET, balanceUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 TextView accountBalanceTextView = (TextView) findViewById(R.id.accountBalanceTextView);
-                accountBalanceTextView.setText("Account balance: " + response);
+                accountBalanceTextView.setText(getString(R.string.entries_title_account_balance) + response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -98,27 +133,32 @@ public class EntriesActivity extends AppCompatActivity {
             public void onResponse(JSONArray response) {
                 try {
                     ListView listView = (ListView) findViewById(R.id.entriesListView);
-                    ArrayList<ListEntry> entries = new ArrayList<>();
+                    ArrayList<EntryDTO> entries = new ArrayList<>();
 
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject jsonObject = response.getJSONObject(i);
+                        EntryDTO entryDTO = new EntryDTO();
+
                         String description = jsonObject.getString("description");
+                        entryDTO.setDescription(description);
+
                         JSONArray tagsArray = jsonObject.getJSONArray("tags");
-                        String tags = "";
+                        ImmutableSet.Builder<String> tags = ImmutableSet.builder();
                         for (int j = 0; j < tagsArray.length(); j++) {
-                            tags = "#" + tagsArray.getString(j) + " ";
+                            tags.add(tagsArray.getString(j));
                         }
+                        entryDTO.setTags(tags.build());
 
                         String value = jsonObject.getString("value");
+                        entryDTO.setValue(new BigDecimal(value));
 
-                        SimpleDateFormat sdfDate = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-                        String date = sdfDate.format(new Date(jsonObject.getLong("createDate")));
+                        Date date = new Date(jsonObject.getLong("createDate"));
+                        entryDTO.setCreateDate(date);
 
-                        entries.add(new ListEntry(description, tags, value, date));
-                        Log.i("ENTRIES", description + " " + tags + " " + value);
+                        entries.add(entryDTO);
                     }
 
-                    ArrayAdapter<ListEntry> adapter = new ListEntryAdapter(EntriesActivity.this, R.layout.single_entry_layout, entries);
+                    ArrayAdapter<EntryDTO> adapter = new ListEntryAdapter(EntriesActivity.this, R.layout.single_entry_layout, entries);
 
                     listView.setAdapter(adapter);
                 } catch (Exception e) {
@@ -134,7 +174,7 @@ public class EntriesActivity extends AppCompatActivity {
         });
 
 
-        ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        ProgressBar progressBar = (ProgressBar) findViewById(R.id.entriesLoadingProgressBar);
         progressBar.setVisibility(View.VISIBLE);
 
         queue.add(entriesRequest);
@@ -143,11 +183,35 @@ public class EntriesActivity extends AppCompatActivity {
         queue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
             @Override
             public void onRequestFinished(Request<Object> request) {
-                ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
+                ProgressBar progressBar = (ProgressBar) findViewById(R.id.entriesLoadingProgressBar);
                 progressBar.setVisibility(View.INVISIBLE);
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
+    }
+
+    private String getServerAddressFromSharedPreferences() {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        return preferences.getString(MainActivity.SERVER_ADDRESS, "");
+    }
+
+    @NonNull
+    private String getAccountBalanceUrl(String baseUrl) {
+        return Uri.parse(baseUrl)
+                .buildUpon()
+                .appendPath("entries")
+                .appendPath("balance")
+                .build()
+                .toString();
+    }
+
+    @NonNull
+    private String getEntriesUrl(String baseUrl) {
+        return Uri.parse(baseUrl)
+                .buildUpon()
+                .appendPath("entries")
+                .build()
+                .toString();
     }
 
 }

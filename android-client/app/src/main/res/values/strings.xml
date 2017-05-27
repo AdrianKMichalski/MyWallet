@@ -14,4 +14,6 @@
     <string name="account_balance_default">Account balance not available yet</string>
     <string name="my_wallet_title">MyWallet</string>
     <string name="default_my_wallet_server_url">http://localhost/mywallet</string>
+    <string name="entries_title_account_balance">Account balance:</string>
+    <string name="wrong_server_address">Wrong MyWallet server address</string>
 </resources>

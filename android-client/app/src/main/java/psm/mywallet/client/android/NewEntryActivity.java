@@ -2,12 +2,14 @@ package psm.mywallet.client.android;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-
-import android.os.Build;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -25,13 +27,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
+import psm.mywallet.api.EntryDTO;
+
 /**
  * @author Adrian Michalski
  */
 public class NewEntryActivity extends AppCompatActivity {
 
     private EditText descriptionEditText;
-    private EditText valueEditText;
     private View progressBar;
     private View newEntryForm;
 
@@ -42,7 +47,6 @@ public class NewEntryActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);
-        valueEditText = (EditText) findViewById(R.id.valueEditText);
 
         Button addEntryButton = (Button) findViewById(R.id.addEntryButton);
         addEntryButton.setOnClickListener(new OnClickListener() {
@@ -58,37 +62,38 @@ public class NewEntryActivity extends AppCompatActivity {
 
     private void attemptToAddEntry() {
         String description = descriptionEditText.getText().toString();
-        String value = valueEditText.getText().toString();
+
+        List<EntryDTO> parsedEntries = new ListEntryParser().parse(description);
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        String baseUrl = getServerAddressFromSharedPreferences();
+        String entriesUrl = getEntriesUrl(baseUrl);
 
         showProgress(true);
+        for (EntryDTO entry : parsedEntries) {
+            JSONObject jsonBody = new JSONObject();
+            try {
+                jsonBody.put("value", entry.getValue());
+                jsonBody.put("description", entry.getDescription());
+                jsonBody.put("tags", new JSONArray(entry.getTags()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String entriesUrl = "http://localhost/mywallet/entries"; // TODO: use URL from settings
+            JsonObjectRequest newEntryRequest = new JsonObjectRequest(entriesUrl, jsonBody, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
 
-        JSONObject jsonBody = new JSONObject();
-        try {
-            JSONArray tagsArray = new JSONArray(); // TODO: parse tags
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
 
-            jsonBody.put("value", Double.parseDouble(value));
-            jsonBody.put("description", description);
-            jsonBody.put("tags", tagsArray);
-        } catch (JSONException e) {
-            e.printStackTrace();
+                }
+            });
+
+            queue.add(newEntryRequest);
         }
-
-        JsonObjectRequest newEntryRequest = new JsonObjectRequest(entriesUrl, jsonBody, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-        });
-
-        queue.add(newEntryRequest);
         queue.addRequestFinishedListener(new RequestQueue.RequestFinishedListener<Object>() {
             @Override
             public void onRequestFinished(Request<Object> request) {
@@ -103,8 +108,20 @@ public class NewEntryActivity extends AppCompatActivity {
                 }
             }
         });
+    }
 
+    private String getServerAddressFromSharedPreferences() {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        return preferences.getString(MainActivity.SERVER_ADDRESS, "");
+    }
 
+    @NonNull
+    private String getEntriesUrl(String baseUrl) {
+        return Uri.parse(baseUrl)
+                .buildUpon()
+                .appendPath("entries")
+                .build()
+                .toString();
     }
 
     private void showProgress(final boolean show) {
@@ -128,6 +145,7 @@ public class NewEntryActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }
 

@@ -8,21 +8,22 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import psm.mywallet.client.android.pojo.ListEntry;
+import psm.mywallet.api.EntryDTO;
 
 /**
  * @author Adrian Michalski
  */
-public class ListEntryAdapter extends ArrayAdapter<ListEntry> {
+public class ListEntryAdapter extends ArrayAdapter<EntryDTO> {
 
     private Context context;
-    private List<ListEntry> data;
+    private List<EntryDTO> data;
     private int layoutResourceId;
 
-    public ListEntryAdapter(Context context, int layoutResourceId, ArrayList<ListEntry> data) {
+    public ListEntryAdapter(Context context, int layoutResourceId, ArrayList<EntryDTO> data) {
         super(context, layoutResourceId, data);
         this.context = context;
         this.data = data;
@@ -32,7 +33,7 @@ public class ListEntryAdapter extends ArrayAdapter<ListEntry> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
-        ViewHolder holder = null;
+        ViewHolder holder;
 
         if (row == null) {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
@@ -42,19 +43,28 @@ public class ListEntryAdapter extends ArrayAdapter<ListEntry> {
             holder.descriptionTextView = (TextView) row.findViewById(R.id.descriptionTextView);
             holder.tagsTextView = (TextView) row.findViewById(R.id.tagsTextView);
             holder.valueTextView = (TextView) row.findViewById(R.id.valueTextView);
-            holder.accountBalanceTextView = (TextView) row.findViewById(R.id.dateTextView);
+            holder.dateTextView = (TextView) row.findViewById(R.id.dateTextView);
 
             row.setTag(holder);
         } else {
             holder = (ViewHolder) row.getTag();
         }
 
-        ListEntry listEntry = data.get(position);
+        EntryDTO entryDTO = data.get(position);
 
-        holder.descriptionTextView.setText(listEntry.getDescription());
-        holder.tagsTextView.setText(listEntry.getTags());
-        holder.valueTextView.setText(listEntry.getValue());
-        holder.accountBalanceTextView.setText(listEntry.getBalance());
+        holder.descriptionTextView.setText(entryDTO.getDescription());
+
+        String tagsFormatted = "";
+        for (String tag : entryDTO.getTags()) {
+            tagsFormatted += "#" + tag + " ";
+        }
+        holder.tagsTextView.setText(tagsFormatted);
+
+        holder.valueTextView.setText(entryDTO.getValue().toString());
+
+        SimpleDateFormat sdfDate = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        String date = sdfDate.format(entryDTO.getCreateDate());
+        holder.dateTextView.setText(date);
 
         return row;
     }
@@ -63,7 +73,7 @@ public class ListEntryAdapter extends ArrayAdapter<ListEntry> {
         TextView descriptionTextView;
         TextView tagsTextView;
         TextView valueTextView;
-        TextView accountBalanceTextView;
+        TextView dateTextView;
     }
 
 }
