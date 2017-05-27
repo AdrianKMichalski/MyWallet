@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">MyWallet</string>
+    <string name="title_activity_entries">EntriesActivity</string>
+    <string name="preferences_address">psm.mywallet.client.android.MainActivity.PREFERENCES_ADDRESS</string>
+    <string name="main_enter_server_address_label">Enter MyWallet server address, please</string>
+    <string name="main_enter_address_hint">http://localhost/mywallet</string>
+    <string name="main_enter_address_button_continue">Continue</string>
+    <string name="title_activity_new_entry">Add new entry</string>
+
+    <string name="prompt_description">Description</string>
+    <string name="action_add_new_entry">Save</string>
+
+    <string name="prompt_value">Value</string>
+    <string name="account_balance_default">Account balance not available yet</string>
+    <string name="my_wallet_title">MyWallet</string>
+    <string name="default_my_wallet_server_url">http://localhost/mywallet</string>
 </resources>
