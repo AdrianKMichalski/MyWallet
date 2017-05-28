@@ -1,7 +1,8 @@
 # MyWallet
 
 ## What is it?
-`TODO TODO TODO TODO TODO`
+**MyWallet** is an client-server application that allows you to manage your home spendings.  
+It was created as Mobile Systems Programming final project by **Adrian Michalski** and **Kamil Maj**.
 
 ## How to run it?
 ### Bitnami WildFly stack installation
@@ -30,7 +31,7 @@ If you remove default datasource it might be necessary to use this command:
 
 #### Application deployment
 1. Build .war file
- - go to mywallet server directory (where the pom.xml file is) 
+ - go to mywallet server directory (where the pom.xml file is)
  - run `mvn clean package`
  - `mywallet.war` should appear in the `target` directory
 2. Deploy .war file
@@ -79,4 +80,73 @@ If you remove default datasource it might be necessary to use this command:
 }
 ```
 
-`TODO TODO TODO TODO TODO`
+##### Remove entry
+**REMOVE** on `/mywallet/entries/delete/{entryId}`
+
+### Android client
+#### Installation
+First build and install .apk on your device.
+
+#### Usage
+##### Set up
+At first run application will ask you for MyWallet server address.
+If you are using local wildfly installation (as described before) it will be simply  
+`http://localhost/mywallet`  
+![](img/setup_1.png)  
+After entering proper server URL click the **CONTINUE** button.
+
+If you enter wrong server address screen will look like this:  
+![](img/setup_2.png)  
+Otherwise you are ready to add new entries.  
+![](img/setup_3.png)  
+
+If you want to change server address just click on **GEAR** settings button in top-right corner.
+
+##### Working with application
+###### Adding entries
+To add new entry click on green floating plus button **(+)**.
+
+Let's assume your salary for May have just arrived, so we can type:  
+`#salary may 2500`  
+![](img/add_1.png)  
+
+click on **SAVE** button and entry is added.  
+![](img/add_2.png)  
+You can see, that entry is present and account balance is updated.
+
+If you are on dinner you can type:  
+`#food dinner -15`  
+![](img/add_3.png)  
+And $15 from your account have just gone.  
+![](img/add_4.png)  
+
+If you are on dinner with your friend and you buy 2 pizzas just type:  
+`#food pizza with Bob 2*-10`  
+![](img/add_5.png)  
+As you can see MyWallet can do simple math for you :)
+
+What if you are on dinner with your vegan friend?  
+`#food chicken bbq pizza -10 grilled potatoes 5*-0.5`  
+![](img/add_6.png)  
+My wallet will do proper math and split your entry.
+
+If you're using app on other device and you have just added another entry you can refresh view by swiping down the screen (just like in your Internet browser).  
+![](img/add_7.png)  
+
+###### Viewing statistics
+Now we can check how much money we spent on food.
+Let's click on **HASH (#)** button on the toolbar...   
+![](img/statistics_1.png)  
+...and enter food in tag name.  
+![](img/statistics_2.png)  
+If tag name is long just type first few characters and app will auto complete the rest for you.  
+![](img/statistics_3.png)  
+Click **SEARCH** button and you know you have spent $47.5 for food.  
+![](img/statistics_4.png)
+
+###### Deleting entries
+If you want to delete entry just click and hold your finger on it.  
+![](img/delete_1.png)  
+Click yes.  
+![](img/delete_2.png)  
+And it's gone :)
