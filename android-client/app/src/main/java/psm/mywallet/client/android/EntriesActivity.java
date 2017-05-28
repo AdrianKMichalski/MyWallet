@@ -1,5 +1,6 @@
 package psm.mywallet.client.android;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -8,9 +9,11 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -22,6 +25,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.common.collect.ImmutableSet;
@@ -40,11 +44,12 @@ import psm.mywallet.api.EntryDTO;
  */
 public class EntriesActivity extends AppCompatActivity {
 
+    RequestQueue queue;
     private String baseUrl;
     private String balanceUrl;
     private String entriesUrl;
-
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +59,12 @@ public class EntriesActivity extends AppCompatActivity {
         checkServerConfiguration();
 
         setupServerEndpoints();
+        queue = Volley.newRequestQueue(this);
         setupToolbar();
         setupHashtagButton();
         setupSettingsButton();
-        setUpSwipeRefresh();
+        setupSwipeRefresh();
+        setupListView();
         setupFloatingAddEntryButton();
 
         queryEntries();
@@ -104,7 +111,7 @@ public class EntriesActivity extends AppCompatActivity {
         });
     }
 
-    private void setUpSwipeRefresh() {
+    private void setupSwipeRefresh() {
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshEntriesLayout);
         swipeRefreshLayout.setColorSchemeColors(
                 getResources().getColor(R.color.colorPrimary),
@@ -116,6 +123,40 @@ public class EntriesActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 queryEntries();
+            }
+        });
+    }
+
+    private void setupListView() {
+        listView = (ListView) findViewById(R.id.entriesListView);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final EntryDTO entryDTO = (EntryDTO) ((ListView) parent).getAdapter().getItem(position);
+
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                removeEntry(entryDTO.getId());
+                                dialog.dismiss();
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                dialog.dismiss();
+                                break;
+                        }
+                    }
+                };
+
+                new AlertDialog.Builder(EntriesActivity.this)
+                        .setMessage("Delete entry?")
+                        .setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener)
+                        .show();
+
+                return false;
             }
         });
     }
@@ -132,8 +173,6 @@ public class EntriesActivity extends AppCompatActivity {
     }
 
     private void queryEntries() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-
         StringRequest balanceRequest = new StringRequest(Request.Method.GET, balanceUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -152,12 +191,14 @@ public class EntriesActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONArray response) {
                 try {
-                    ListView listView = (ListView) findViewById(R.id.entriesListView);
                     ArrayList<EntryDTO> entries = new ArrayList<>();
 
                     for (int i = 0; i < response.length(); i++) {
                         JSONObject jsonObject = response.getJSONObject(i);
                         EntryDTO entryDTO = new EntryDTO();
+
+                        long id = jsonObject.getLong("id");
+                        entryDTO.setId(id);
 
                         String description = jsonObject.getString("description");
                         entryDTO.setDescription(description);
@@ -226,6 +267,35 @@ public class EntriesActivity extends AppCompatActivity {
         return Uri.parse(baseUrl)
                 .buildUpon()
                 .appendPath("entries")
+                .build()
+                .toString();
+    }
+
+    private void removeEntry(Long id) {
+        String removeEntryUrl = getRemoveEntryUrl(baseUrl, id);
+        StringRequest removeEntryRequest = new StringRequest(Request.Method.GET, removeEntryUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Toast.makeText(EntriesActivity.this, "Entry removed successfully", Toast.LENGTH_SHORT).show();
+                queryEntries();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(EntriesActivity.this, "Can not remove entry - check your internet connection and try again", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        queue.add(removeEntryRequest);
+    }
+
+    @NonNull
+    private String getRemoveEntryUrl(String baseUrl, Long id) {
+        return Uri.parse(baseUrl)
+                .buildUpon()
+                .appendPath("entries")
+                .appendPath("delete")
+                .appendPath(String.valueOf(id))
                 .build()
                 .toString();
     }

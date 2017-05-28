@@ -68,7 +68,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12dp"
-                android:text="Example entries:\n#food pizza 3.5\n#food pizza 2*3.5"/>
+                android:text="Example entries:\n#salary 2500\n#food pizza -3.5\n#food two pizzas 2*-3.5\n#food pizza -3.5 cola 2*-1"/>
 
         </LinearLayout>
     </ScrollView>
