@@ -4,6 +4,12 @@
 **MyWallet** is an client-server application that allows you to manage your home spendings.  
 It was created as Mobile Systems Programming final project by **Adrian Michalski** and **Kamil Maj**.
 
+You can see a video of working application on [youtube](https://www.youtube.com/watch?v=xAutyJ61rNU).
+
+Compiled client and server are available to download in **release** directory:
+- [Android client in .apk](release/mywallet.apk)
+- [Wildfly .war](release/mywallet.war)
+
 ## How to run it?
 ### Bitnami WildFly stack installation
 Simply download installation package from https://bitnami.com/stack/wildfly and install it.  
