@@ -83,4 +83,13 @@ public class EntryResource {
         return Response.ok().build();
     }
 
+    @DELETE
+    @Path("delete/{entryId}")
+    public Response deleteEntry(@PathParam("entryId") String entryId) {
+        long id = Long.parseLong(entryId);
+
+        entryRepository.remove(id);
+        return Response.ok().build();
+    }
+
 }
