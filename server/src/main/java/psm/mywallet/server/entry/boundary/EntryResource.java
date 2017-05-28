@@ -83,7 +83,7 @@ public class EntryResource {
         return Response.ok().build();
     }
 
-    @DELETE
+    @GET
     @Path("delete/{entryId}")
     public Response deleteEntry(@PathParam("entryId") String entryId) {
         long id = Long.parseLong(entryId);
