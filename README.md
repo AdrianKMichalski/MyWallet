@@ -81,7 +81,8 @@ If you remove default datasource it might be necessary to use this command:
 ```
 
 ##### Remove entry
-**REMOVE** on `/mywallet/entries/delete/{entryId}`
+**GET** on `/mywallet/entries/delete/{entryId}`  
+**Notice**: GET method used because Volley does not support DELETE method properly.
 
 ### Android client
 #### Installation
